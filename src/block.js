@@ -38,25 +38,25 @@ class Block {
     validate() {
         let self = this;
         
-        return new Promise(async (resolve, reject) => {
+        return new Promise(async (resolve) => {
             // Save in auxiliary variable the current block hash
              // Recalculate the hash of the Block
             let savedHash = this.hash;
-            let jsonVar = JSON.parse(JSON.stringify(self));
-            let currentHash = SHA256(JSON.stringify({...jsonVar, hash: null})).toString();                  
+           // let jsonVar = JSON.parse(JSON.stringify(self));
+            let currentHash = SHA256(JSON.stringify({...self, hash: null})).toString();                  
            
             // Comparing if the hashes changed
             if(savedHash === currentHash){
                 resolve(true);
             }else{
-                reject("Block is not valid");
+                resolve(false);
             }
             // Returning the Block is not valid
             
             // Returning the Block is valid
 
-        }).catch(error => {
-            console.error(error)
+        /*}).catch(error => {
+            console.error(error)*/
         });
     }
 
@@ -75,12 +75,12 @@ class Block {
        
        // let self = this;
         // Decoding the data to retrieve the JSON representation of the object
-        let data= hex2ascii(this.body);  // Parse the data to an object to be retrieve.
+        let dataDecoded = hex2ascii(this.body);  // Parse the data to an object to be retrieve.
         
         return new Promise((resolve, reject) => { 
             // Resolve with the data if the object isn't the Genesis block
             if(this.height !== 0){
-                resolve(JSON.parse(data));
+                resolve(JSON.parse(dataDecoded));
             }else{
                  reject("No data Found!"); //No data to show, Just Genesis block
             }
