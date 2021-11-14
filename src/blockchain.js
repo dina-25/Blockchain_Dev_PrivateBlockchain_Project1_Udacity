@@ -72,12 +72,14 @@ class Blockchain {
          if(blockHeight > -1){
              block.previousBlockHash = prevBlock.hash;
          }
+          errorLog = await self.validateChain();
           if(errorLog.length ===0){
               block.height = blockHeight +1;
               block.hash = await SHA256(JSON.stringify(block)).toString();
               this.height = blockHeight +1;
               self.chain.push(block);
               resolve(block);
+              
           }else{
               reject("Blockchain not valid")
           }
@@ -130,10 +132,14 @@ class Blockchain {
             if(currentTime-messageTime>300 ){
                 reject("Time elapsed more than 5 minutes");
             }
-            bitcoinMessage.verify(message,address,signature);
+            if(!bitcoinMessage.verify(message,address,signature)){
+            
+                    reject("Message not Valid!")
+                }
             let starBlock = new BlockClass.Block({address: address, star: star});
             await self._addBlock(starBlock);
             resolve(starBlock);
+    
         }).catch(error => {
             console.error(error)
             
@@ -149,7 +155,7 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
-            let hashBlock = self.chain.filter(bHash => bHash.hash === hash)[0];
+            let hashBlock = self.chain.find(bHash => bHash.hash === hash)[0];
             if(hashBlock !== null){
                 resolve(hashBlock);
             }else{
@@ -226,14 +232,17 @@ class Blockchain {
                     let blockHeight = block.height;
                     if(blockHeight > 0){
                         let previousBlock = await this.getBlockByHeight((blockHeight-1));
+                      //  errorLog.push();
                         //2. Each Block should check the with the previousBlockHash
                         if(block.previousBlockHash !== previousBlock.hash){
                             errorLog.push(`Invalid Block hash at Height + ${block.height}$`)
                         }
                     }
                     
+                }else{
+                    errorLog.push("Block not valid!");
                 }
-
+                
             }resolve(errorLog);
             
         }).catch(error => {
